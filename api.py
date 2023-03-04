@@ -13,6 +13,7 @@ import re
 from model import WeekSchedule, DaySchedule, HourSchedule
 from utils import check
 
+
 # var ACT_GET = 1;
 # var ACT_SET = 2;
 # var ACT_ADD = 3;
@@ -53,12 +54,12 @@ class Router(object):
 
     def post_data(self, referer, post_url, payload):
         self.session.headers['Referer'] = referer
-        print("-"*10)
+        print("-" * 10)
         print(f"{post_url} {self.session.headers}\n{payload}")
         response = self.session.post(post_url, data=payload, timeout=self.post_timeout)
         print(response.status_code)
         print(response.text)
-        print("-"*10)
+        print("-" * 10)
         return response
 
     def get_wan_details(self):
@@ -104,16 +105,29 @@ class Router(object):
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
             return True
-    def add_schedule(self, enable: bool = False):
-        check(enable, bool, "enable")
-        payload = f"[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable={int(enable)}\r\ndefaultAction=0\r\n"
-        post_url = self.referer + '/cgi?2'
+
+    # requires already existing shcedule at least one
+    # if schedule configuration(not name) already exists, then error
+    def add_schedule(self, name: str, schedule: WeekSchedule):
+        check(name, str, "name")
+        check(schedule, WeekSchedule, "schedule")
+        formatted_schedule = Router.format_schedule(schedule)
+        print(schedule)
+        print(formatted_schedule)
+        payload = f"[TASK_SCHEDULE#0,0,0,0,0,0#0,0,0,0,0,0]0,15\r\nentryName={name}\r\n{formatted_schedule}"
+        post_url = self.referer + '/cgi?3' # if first schedule - change to ?2,and also replace first '0' -> '2' in payload after TASK_SCHEDULE after '#'(either first or second)
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
             return True
+        if response.text == '[error]4712':
+            print("Such configuration already exists. Not the name, the configuration of the schedule exactly the same as in one of the existing ones")
+            return False
+        if response.text == '[error]1001':
+            print(f"Such schedule for name {name} already exists")
+            return False
 
     @staticmethod
-    def format_schedule(schedule:  WeekSchedule):
+    def format_schedule(schedule: WeekSchedule):
         return Router.format_days(schedule.days_starting_sunday())
 
     @staticmethod
@@ -129,16 +143,19 @@ class Router(object):
     def compute_day_value(day_schedule: DaySchedule):
         hours = list(map(lambda x: x.occupied, sorted(day_schedule.full)))
         values = []
-        def unique_pos(idx): return 2 ** idx
+
+        def unique_pos(idx):
+            return 2 ** idx
+
         for index, hour in enumerate(hours):
-            half_index = (index*2) % 24
+            half_index = (index * 2) % 24
             if hour & HourSchedule.FIRST_HALF:
                 values.append(unique_pos(half_index))
             else:
                 values.append(0)
 
             if hour & HourSchedule.SECOND_HALF:
-                values.append(unique_pos(half_index+1))
+                values.append(unique_pos(half_index + 1))
             else:
                 values.append(0)
         am = values[:24]
@@ -146,5 +163,15 @@ class Router(object):
         return sum(am), sum(pm)
 
 
-# router = Router("192.168.0.1")
+sched = WeekSchedule.parse(""
+                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # mon
+                           "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n" # tue
+                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # wed
+                           "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n" # thu
+                           "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # fri
+                           "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # sat
+                           "0,0,0,0, 0,0,1,1, 0,1,1,1,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")# sun
+
+router = Router("192.168.0.1")
+print(router.add_schedule("S15", sched))
 # print(router.enable_access_control(True))
