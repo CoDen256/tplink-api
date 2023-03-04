@@ -2,14 +2,52 @@ import unittest
 from model import *
 
 
+def inc(schedule: List[HourSchedule], factor=1, start=0):
+    res = []
+    for (i, s) in enumerate(schedule):
+        res.append(HourSchedule(start + i * factor, s.occupied))
+    return res
+
+
 class MyTestCase(unittest.TestCase):
+
     def test_week(self):
-        sched = WeekSchedule.parse("0=1,2,3,4,5,6")
-        self.assertEqual(sched, WeekSchedule([]))
+        sched = WeekSchedule.parse(""
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
+                                   "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n"
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
+                                   "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n"
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
+                                   "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")
+        self.assertEquals(sched, WeekSchedule(
+            [DaySchedule(inc([HourSchedule(0, 2)] * 24)),
+             DaySchedule(inc([HourSchedule(0, 1)] * 24)),
+             DaySchedule(inc([HourSchedule(0, 2)] * 24)),
+             DaySchedule(
+                 inc([HourSchedule(0, 0)] * 6, 4, 0) +
+                 inc([HourSchedule(0, 1)] * 6, 4, 1) +
+                 inc([HourSchedule(0, 2)] * 6, 4, 2) +
+                 inc([HourSchedule(0, 3)] * 6, 4, 3)),
+             DaySchedule([]),
+             DaySchedule(inc([HourSchedule(0, 3)] * 8, start=4)),
+             DaySchedule([])
+             ]
+        ))
+
+    def test_parse_day(self):
+        self.assertEquals(DaySchedule.parse("0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3"),
+                          DaySchedule(
+                              inc([HourSchedule(0, 0)] * 6, 4, 0) +
+                              inc([HourSchedule(0, 1)] * 6, 4, 1) +
+                              inc([HourSchedule(0, 2)] * 6, 4, 2) +
+                              inc([HourSchedule(0, 3)] * 6, 4, 3))
+                          )
 
     def test_neq_weeks(self):
         self.assertNotEquals(WeekSchedule([
-            DaySchedule([HourSchedule(1)]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([HourSchedule(1)]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([]),
             DaySchedule([]),
         ]), WeekSchedule([
             DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
@@ -22,7 +60,8 @@ class MyTestCase(unittest.TestCase):
             DaySchedule([]),
             DaySchedule([]),
         ]), WeekSchedule([
-            DaySchedule([]), DaySchedule([]), DaySchedule([HourSchedule(1)]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([]), DaySchedule([]), DaySchedule([HourSchedule(1)]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([]),
             DaySchedule([]),
         ])
         )
@@ -38,10 +77,12 @@ class MyTestCase(unittest.TestCase):
         )
 
         self.assertEquals(WeekSchedule([
-            DaySchedule([HourSchedule(0, 0)]), DaySchedule([HourSchedule(2, 3)]), DaySchedule([]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([HourSchedule(0, 0)]), DaySchedule([HourSchedule(2, 3)]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([]), DaySchedule([]),
             DaySchedule([]),
         ]), WeekSchedule([
-            DaySchedule([]), DaySchedule([HourSchedule(2)]), DaySchedule([HourSchedule(0, 0)]), DaySchedule([]), DaySchedule([]), DaySchedule([]),
+            DaySchedule([]), DaySchedule([HourSchedule(2)]), DaySchedule([HourSchedule(0, 0)]), DaySchedule([]),
+            DaySchedule([]), DaySchedule([]),
             DaySchedule([]),
         ])
         )
