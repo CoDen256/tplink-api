@@ -1,0 +1,9 @@
+[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8
+ruleName=Test
+internalHostRef=xiaomi
+externalHostRef=Youtube
+scheduleRef=S3
+action=1
+enable=1
+direction=1
+protocol=0

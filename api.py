@@ -115,16 +115,27 @@ class Router(object):
         print(schedule)
         print(formatted_schedule)
         payload = f"[TASK_SCHEDULE#0,0,0,0,0,0#0,0,0,0,0,0]0,15\r\nentryName={name}\r\n{formatted_schedule}"
-        post_url = self.referer + '/cgi?3' # if first schedule - change to ?2,and also replace first '0' -> '2' in payload after TASK_SCHEDULE after '#'(either first or second)
+        post_url = self.referer + '/cgi?3'  # if first schedule - change to ?2,and also replace first '0' -> '2' in payload after TASK_SCHEDULE after '#'(either first or second)
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
             return True
         if response.text == '[error]4712':
-            print("Such configuration already exists. Not the name, the configuration of the schedule exactly the same as in one of the existing ones")
+            print(
+                "Such configuration already exists. Not the name, the configuration of the schedule exactly the same as in one of the existing ones")
             return False
         if response.text == '[error]1001':
             print(f"Such schedule for name {name} already exists")
             return False
+
+    # allow 0, deny - 1
+    def add_rule(self, name: str, host: str, target: str, schedule: str, deny: bool, enable: bool = False):
+        check(host, str, "name")
+        check(schedule, str, "schedule")
+        payload = f"[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName={name}\r\ninternalHostRef={host}\r\nexternalHostRef={target}\r\nscheduleRef={schedule}\r\naction={int(deny)}\r\nenable={int(enable)}\r\ndirection=1\r\nprotocol=0\r\n"
+        post_url = self.referer + '/cgi?3'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
 
     @staticmethod
     def format_schedule(schedule: WeekSchedule):
@@ -164,14 +175,15 @@ class Router(object):
 
 
 sched = WeekSchedule.parse(""
-                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # mon
-                           "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n" # tue
-                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # wed
-                           "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n" # thu
-                           "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # fri
-                           "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # sat
-                           "0,0,0,0, 0,0,1,1, 0,1,1,1,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")# sun
+                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"  # mon
+                           "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n"  # tue
+                           "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"  # wed
+                           "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n"  # thu
+                           "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"  # fri
+                           "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"  # sat
+                           "0,0,0,0, 0,0,1,1, 0,1,1,1,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")  # sun
 
 router = Router("192.168.0.1")
-print(router.add_schedule("S15", sched))
+print(router.add_rule("new", "xiaomi", "Youtube", "S3", True, True))
+# print(router.add_schedule("S15", sched))
 # print(router.enable_access_control(True))
