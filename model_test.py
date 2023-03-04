@@ -1,4 +1,6 @@
 import unittest
+
+from api import Router
 from model import *
 
 
@@ -10,6 +12,49 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 
 
 class MyTestCase(unittest.TestCase):
+
+    def test_parse_full(self):
+        result = ("sunAm=0\r\n"
+                    "sunPm=0\r\n"
+                    "monAm=11184810\r\n"
+                    "monPm=11184810\r\n"
+                    "tueAm=5592405\r\n"
+                    "tuePm=5592405\r\n"
+                    "wedAm=11184810\r\n"
+                    "wedPm=11184810\r\n"
+                    "thuAm=15000804\r\n"
+                    "thuPm=15000804\r\n"
+                    "friAm=0\r\n"
+                    "friPm=0\r\n"
+                    "satAm=16776960\r\n"
+                    "satPm=0\r\n")
+
+        sched = WeekSchedule.parse(""
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # mon
+                                   "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n" # tue
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # wed
+                                   "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n" # thu
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # fri
+                                   "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # sat
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")# sun
+
+        self.assertEquals(result, Router.format_schedule(sched))
+
+    def test_compute_value_day(self):
+        self.assertEquals((1, 2), Router.compute_day_value(
+            DaySchedule.parse("1,0,0,0,   0,0,0,0,  0,0,0,0,  2,0,0,0,  0,0,0,0,  0,0,0,0")))
+        self.assertEquals(
+            (11184810, 11184810),
+            Router.compute_day_value(DaySchedule.parse("2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2")))
+        self.assertEquals(
+            (5592405, 5592405),
+            Router.compute_day_value(DaySchedule.parse("1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1")))
+        self.assertEquals(
+            (15000804, 15000804),
+            Router.compute_day_value(DaySchedule.parse("0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3")))
+        self.assertEquals(
+            (16776960, 0),
+            Router.compute_day_value(DaySchedule.parse("0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0")))
 
     def test_week(self):
         sched = WeekSchedule.parse(""

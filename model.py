@@ -3,11 +3,18 @@ from typing import List
 
 
 class WeekSchedule:
+    WEEK = ["mon","tue","wed","thu","fri","sat", "sun"]
     def __init__(self, days):
         if (len(days) != 7):
             raise AttributeError(f"Days should be 7 in a week, not {len(days)}")
 
         self.days = days
+
+    def days_with_names(self):
+        return [(x, WeekSchedule.WEEK[i]) for (i, x) in enumerate(self.days)]
+
+    def days_starting_sunday(self):
+        return self.days_with_names()[-1:] + self.days_with_names()[:-1]
 
     @classmethod
     def parse(cls, string: str):

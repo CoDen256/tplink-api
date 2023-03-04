@@ -10,6 +10,7 @@ import requests
 from base64 import b64encode
 import re
 
+from model import WeekSchedule, DaySchedule, HourSchedule
 from utils import check
 
 # var ACT_GET = 1;
@@ -111,5 +112,39 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
-router = Router("192.168.0.1")
-print(router.enable_access_control(True))
+    @staticmethod
+    def format_schedule(schedule:  WeekSchedule):
+        return Router.format_days(schedule.days_starting_sunday())
+
+    @staticmethod
+    def format_days(days):
+        res = ""
+        for schedule, day in days:
+            value_0, value_1 = Router.compute_day_value(schedule)
+            res += f"{day}Am={value_0}\r\n"
+            res += f"{day}Pm={value_1}\r\n"
+        return res
+
+    @staticmethod
+    def compute_day_value(day_schedule: DaySchedule):
+        hours = list(map(lambda x: x.occupied, sorted(day_schedule.full)))
+        values = []
+        def unique_pos(idx): return 2 ** idx
+        for index, hour in enumerate(hours):
+            half_index = (index*2) % 24
+            if hour & HourSchedule.FIRST_HALF:
+                values.append(unique_pos(half_index))
+            else:
+                values.append(0)
+
+            if hour & HourSchedule.SECOND_HALF:
+                values.append(unique_pos(half_index+1))
+            else:
+                values.append(0)
+        am = values[:24]
+        pm = values[24:48]
+        return sum(am), sum(pm)
+
+
+# router = Router("192.168.0.1")
+# print(router.enable_access_control(True))
