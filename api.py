@@ -12,6 +12,14 @@ import re
 
 from utils import check
 
+# var ACT_GET = 1;
+# var ACT_SET = 2;
+# var ACT_ADD = 3;
+# var ACT_DEL = 4;
+# var ACT_GL = 5;
+# var ACT_GS = 6;
+# var ACT_OP = 7;
+# var ACT_CGI = 8;
 
 class Router(object):
 
@@ -44,8 +52,12 @@ class Router(object):
 
     def post_data(self, referer, post_url, payload):
         self.session.headers['Referer'] = referer
-        print(f"{post_url} {referer}, {self.session.headers}\n{payload}")
+        print("-"*10)
+        print(f"{post_url} {self.session.headers}\n{payload}")
         response = self.session.post(post_url, data=payload, timeout=self.post_timeout)
+        print(response.status_code)
+        print(response.text)
+        print("-"*10)
         return response
 
     def get_wan_details(self):
@@ -89,8 +101,15 @@ class Router(object):
         payload = f"[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable={int(enable)}\r\ndefaultAction=0\r\n"
         post_url = self.referer + '/cgi?2'
         response = self.post_data(self.main_referer, post_url, payload)
-        print(response.text)
-
+        if response.text == '[error]0':
+            return True
+    def add_schedule(self, enable: bool = False):
+        check(enable, bool, "enable")
+        payload = f"[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable={int(enable)}\r\ndefaultAction=0\r\n"
+        post_url = self.referer + '/cgi?2'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
 
 router = Router("192.168.0.1")
-router.enable_access_control(True)
+print(router.enable_access_control(True))
