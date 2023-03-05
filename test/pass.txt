@@ -1,0 +1,4 @@
+[/cgi/auth#0,0,0,0,0,0#0,0,0,0,0,0]0,3
+oldPwd=admin1
+name=admin
+pwd=admin

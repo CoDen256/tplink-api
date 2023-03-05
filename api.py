@@ -31,14 +31,9 @@ class Router(object):
         self.username = username
         self.password = password
 
-        self.user_pass_str = username + ':' + password
-        self.user_pass_encode = b64encode(self.user_pass_str.encode()).decode('ascii')
-        self.authentication = 'Basic ' + self.user_pass_encode
-        self.cookie = 'Authorization=' + self.authentication
-
         self.session = requests.Session()
         self.referer = 'http://' + self.host
-        self.session.headers['Cookie'] = self.cookie
+        self.session.headers['Cookie'] = self.get_auth_cookie(username, password)
         self.session.headers['Referer'] = self.referer
 
         self.main_referer = self.referer + '/mainFrame.htm'
@@ -46,6 +41,18 @@ class Router(object):
         # Stop the requests after a specific time
         self.timeout = 1.5
         self.post_timeout = 3
+
+    def update_login_credentials(self, new_username, new_password):
+        self.username = new_username
+        self.password = new_password
+        self.session.headers['Cookie'] = self.get_auth_cookie(new_username, new_password)
+
+    @classmethod
+    def get_auth_cookie(cls, username, password):
+        user_pass_str = username + ':' + password
+        user_pass_encode = b64encode(user_pass_str.encode()).decode('ascii')
+        authentication = 'Basic ' + user_pass_encode
+        return 'Authorization=' + authentication
 
     def login(self):
         response = self.session.get(self.referer, timeout=self.timeout)
@@ -164,7 +171,9 @@ class Router(object):
         # /cgi?2 updates entry with id and adds new entries
         id = self._set_target(target.first())
         if not id: return False
-        return self._add_targets(target.targets_omit_first(), id)
+        res = self._add_targets(target.targets_omit_first(), id)
+        if res:
+            return id
 
     def _get_target_id(self, response):
         return int(response[1:].split(",")[0])
@@ -188,6 +197,16 @@ class Router(object):
         post_url = post_url[:-1]
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
+            return True
+
+    def change_pass(self, new_username, new_password):
+        check(new_username, str, "new_username")
+        check(new_password, str, "new_password")
+        payload = f"[/cgi/auth#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\noldPwd={self.password}\r\nname={new_username}\r\npwd={new_password}\r\n"
+        post_url = self.referer + '/cgi?8'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            self.update_login_credentials(new_username, new_password)
             return True
 
     @staticmethod
@@ -240,9 +259,10 @@ sched = WeekSchedule.parse(""
                            "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"  # sat
                            "0,0,0,0, 0,0,1,1, 0,1,1,1,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")  # sun
 
-router = Router("192.168.0.1")
+router = Router("192.168.0.1", "admin", "admin")
 # print(router.add_rule("new", "xiaomi", "Youtube", "S3", True, True))
 # print(router.add_schedule("S15", sched))
 # print(router.enable_access_control(True))
 # router.add_host("new3", "10:6F:D9:A0:1C:D2")
-router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))
+# router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))
+# router.change_pass("admin", "admin")
