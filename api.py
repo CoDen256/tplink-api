@@ -135,6 +135,48 @@ class Router(object):
             print(f"Error: Such schedule for name {name} already exists")
             return False
 
+    def get_schedules(self):
+        payload = "[TASK_SCHEDULE#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nentryName\r\nisParentCtrl\r\n"
+        post_url = self.referer + '/cgi?5'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return Router.parse_schedules(response.text)
+
+    @staticmethod
+    def parse_schedules(sch_str: str):
+        sch_id_name = []
+        schedules = sch_str.split("[")
+        for sch in schedules[1:-1]:
+            lines = re.split("\r?\n", sch)
+            id = int(lines[0].split(",")[0])
+            name = lines[1].split('=')[1]
+            sch_id_name.append((id, name))
+        return sch_id_name
+
+    def delete_schedule(self, id):
+        check(id, int, "id")
+        payload = f"[TASK_SCHEDULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?4'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
+    def delete_target(self, id):
+        check(id, int, "id")
+        payload = f"[EXTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?4'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
+    def delete_host(self, id):
+        check(id, int, "id")
+        payload = f"[INTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?4'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
     # allow 0, deny - 1
     def add_rule(self, rule: Rule):
         payload = f"[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName={rule.name}\r\ninternalHostRef={rule.host}\r\nexternalHostRef={rule.target}\r\nscheduleRef={rule.schedule}\r\naction={int(rule.deny)}\r\nenable={int(rule.enable)}\r\ndirection=1\r\nprotocol=0\r\n"
@@ -175,10 +217,8 @@ class Router(object):
         for rule in rules_repr[1:-2]:
             lines = re.split("\r?\n", rule)
             id = int(lines[0].split(",")[0])
-            print(lines)
 
             def get_value(num):
-                print(f"VALUE: {lines[num]}")
                 return lines[num].split("=")[1]
 
             enable = bool(int(get_value(1)))
@@ -323,3 +363,4 @@ router = Router("192.168.0.1", "admin", "admin")
 # print(router.change_wifi_pass("8wsx#fre"))
 # router.enable_rule(11, True)
 # router.delete_rule(11)
+print(router.get_schedules())
