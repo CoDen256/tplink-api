@@ -1,0 +1,2 @@
+youtube=youtube.com,youtube.m,youtube.s
+telegram=web.telegram.com,telegram

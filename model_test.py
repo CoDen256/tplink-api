@@ -15,6 +15,15 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 
 class MyTestCase(unittest.TestCase):
 
+    def test_parse_targets(self):
+        path = os.path.join(os.path.dirname(__file__), 'test/targets.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            content = "".join(f.readlines())
+            targets = GroupedTarget.parse_targets(content)
+            self.assertCountEqual(targets,
+                    [GroupedTarget("youtube", ["youtube.com","youtube.m","youtube.s"]),
+                     GroupedTarget("telegram", ["web.telegram.com","telegram"])])
+
     def test_parse_hosts(self):
         path = os.path.join(os.path.dirname(__file__), 'test/hosts.txt')
         with open(path, 'r', encoding='utf-8') as f:

@@ -114,31 +114,6 @@ class HourSchedule:
         return hash(tuple(sorted(self.__dict__.items())))
 
 
-class GroupedTarget:
-    def __init__(self, name, urls):
-        if not urls: raise AttributeError("GroupedTarget.urls must not be empty")
-        self.urls = urls
-        self.name = name
-
-    def targets(self):
-        return [Target(self.name, url) for url in self.urls]
-
-    def first(self):
-        return Target(self.name, self.urls[0])
-
-    def targets_omit_first(self):
-        return self.targets()[1:]
-
-    def __eq__(self, other):
-        if isinstance(other, GroupedTarget):
-            return self.name == other.name and \
-                self.urls == other.urls
-        return False
-
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-
-
 class Host:
     def __init__(self, name, mac):
         self.name = check(name, str, "name")
@@ -164,6 +139,47 @@ class Host:
     def parse_hosts(cls, str):
         hosts = re.split("\r?\n", str)
         return [Host.parse_host(s) for s in hosts]
+
+
+class GroupedTarget:
+    def __init__(self, name, urls):
+        if not urls: raise AttributeError("GroupedTarget.urls must not be empty")
+        self.urls = urls
+        self.name = name
+
+    def targets(self):
+        return [Target(self.name, url) for url in self.urls]
+
+    def first(self):
+        return Target(self.name, self.urls[0])
+
+    def targets_omit_first(self):
+        return self.targets()[1:]
+
+    def __str__(self):
+        return f"{self.name}{self.urls}"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        if isinstance(other, GroupedTarget):
+            return self.name == other.name and \
+                self.urls == other.urls
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    @classmethod
+    def parse_target(cls, str):
+        name, urls = tuple(list(str.split("=")))
+        return GroupedTarget(name, urls.split(","))
+
+    @classmethod
+    def parse_targets(cls, str):
+        targets = re.split("\r?\n", str)
+        return [GroupedTarget.parse_target(s) for s in targets]
 
 
 class Target:
