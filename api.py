@@ -143,15 +143,25 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
+    def get_rules(self):
+        payload = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
+        post_url = self.referer + '/cgi?5&1'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return Router.parse_rules(response.text)
+
     @staticmethod
     def parse_rules(rules_str: str):
         rules_repr = rules_str.split("[")
         rules = []
 
         for rule in rules_repr[1:-2]:
-            lines = rule.split("\r\n")
+            lines = re.split("\r?\n", rule)
             id = int(lines[0].split(",")[0])
-            def get_value(num): return lines[num].split("=")[1]
+            print(lines)
+            def get_value(num):
+                print(f"VALUE: {lines[num]}")
+                return lines[num].split("=")[1]
 
             enable = bool(int(get_value(1)))
             deny = bool(int(get_value(2)))
@@ -281,3 +291,4 @@ router = Router("192.168.0.1", "admin", "admin")
 # router.add_host("new3", "10:6F:D9:A0:1C:D2")
 # router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))
 # router.change_pass("admin", "admin")
+print(router.get_rules())
