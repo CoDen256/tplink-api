@@ -1,0 +1,4 @@
+[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,3
+type=1
+entryName=pc
+mac=10:6F:D9:A0:1C:D1
