@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from utils import check, iptonum
+from utils import check, iptonum, partition
 
 
 class WeekSchedule:
@@ -59,12 +59,24 @@ class DaySchedule:
             raise AttributeError("Hours should be not more than 24")
         self.full: List[HourSchedule] = list(sorted(self.compute_full_day(hours)))
 
+
+
+    def shift_half_hours(self, count):
+        result = []
+        half_hours = [(bool(h.occupied & h.FIRST_HALF), bool(h.occupied & h.SECOND_HALF)) for h in self.full]
+        flat_hours = [hour for pair in half_hours for hour in pair]
+        shifted = ([False] * count + flat_hours)[:48]
+        for i, pair in enumerate(partition(shifted, 2)):
+            (first, second) = pair
+            result.append(HourSchedule(i, first + (second << 1)))
+        return DaySchedule(result)
+
     @staticmethod
     def compute_full_day(hours):
         full: List[HourSchedule] = hours[:]
         hours_known = set(map(lambda x: x.hour_of_day, full))
         if (len(hours_known) < len(full)):
-            raise AttributeError("Hours should not repeat itself")
+            raise AttributeError("Hours should not repeat")
         for hour in range(24):
             if hour not in hours_known:
                 full.append(HourSchedule(hour, HourSchedule.EMPTY))
@@ -78,8 +90,7 @@ class DaySchedule:
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
 
-    "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3"
-
+    # "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3"
     @classmethod
     def parse(cls, string: str):
         split = re.split("\D*,\D*", string)
@@ -173,7 +184,7 @@ class IpTarget:
             raise AttributeError(f"Port start should be less than port end, but was: {portStart} - {portEnd}")
 
     def __str__(self):
-        return f"{self.name}[{self.ipStart - self.ipEnd}][{self.portStart}-{self.portEnd}]"
+        return f"{self.name}[{self.ipStart} {self.ipEnd}][{self.portStart}-{self.portEnd}]"
 
     def __repr__(self):
         return self.__str__()

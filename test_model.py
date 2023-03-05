@@ -15,6 +15,61 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 
 class MyTestCase(unittest.TestCase):
 
+    def test_shift_half_hours(self):
+        self.maxDiff = None
+        self.assertEquals(DaySchedule([]).shift_half_hours(2),
+                          DaySchedule([]))
+        self.assertEquals(DaySchedule([HourSchedule(0, 1)]).shift_half_hours(2),
+                          DaySchedule([HourSchedule(1, 1)]))
+
+        self.assertEquals(DaySchedule([HourSchedule(2, 2)]).shift_half_hours(2),
+                          DaySchedule([HourSchedule(3, 2)]))
+
+        self.assertEquals(DaySchedule([HourSchedule(0, 1)]).shift_half_hours(1),
+                          DaySchedule([HourSchedule(0, 2)]))
+
+        self.assertEquals(DaySchedule([HourSchedule(0, 1), HourSchedule(1, 1)]).shift_half_hours(1),
+                          DaySchedule([HourSchedule(0, 2), HourSchedule(1, 2)]))
+
+        self.assertEquals(DaySchedule([HourSchedule(0, 2)]).shift_half_hours(1),
+                          DaySchedule([HourSchedule(1, 1)]))
+
+        self.assertCountEqual(DaySchedule([HourSchedule(0, 1), HourSchedule(1, 1),
+                                       HourSchedule(2, 3), HourSchedule(4, 3),
+                                       HourSchedule(5, 3), HourSchedule(6, 3),
+                                       HourSchedule(23, 3), HourSchedule(11, 2),
+                                       HourSchedule(21, 2), HourSchedule(22, 1)
+                                       ]).shift_half_hours(1).full,
+
+                          DaySchedule([HourSchedule(0, 2), HourSchedule(1, 2),
+                                       HourSchedule(2, 2), HourSchedule(3, 1),
+                                       HourSchedule(4, 2), HourSchedule(5, 3),
+                                       HourSchedule(6, 3), HourSchedule(23, 2),
+                                       HourSchedule(7, 1),HourSchedule(22, 3),
+                                        HourSchedule(12, 1)]).full)
+
+        self.assertCountEqual(DaySchedule([HourSchedule(0, 1), HourSchedule(1, 1),
+                                       HourSchedule(2, 3), HourSchedule(4, 3),
+                                       HourSchedule(5, 3), HourSchedule(6, 3),
+                                       HourSchedule(23, 3), HourSchedule(11, 2),
+                                       HourSchedule(21, 2), HourSchedule(22, 1)
+                                       ]).shift_half_hours(12).full,
+
+                          DaySchedule([HourSchedule(6, 1), HourSchedule(7, 1),
+                                       HourSchedule(8, 3), HourSchedule(10, 3),
+                                       HourSchedule(11, 3), HourSchedule(12, 3), HourSchedule(17, 2)]).full)
+
+        self.assertCountEqual(DaySchedule([HourSchedule(0, 1), HourSchedule(1, 1),
+                                       HourSchedule(2, 3), HourSchedule(4, 3),
+                                       HourSchedule(5, 3), HourSchedule(6, 3),
+                                       HourSchedule(23, 3), HourSchedule(11, 2),
+                                       HourSchedule(21, 2), HourSchedule(22, 1)
+                                       ]).shift_half_hours(7).full,
+
+                          DaySchedule([HourSchedule(3, 2), HourSchedule(4, 2),
+                                       HourSchedule(5, 2),HourSchedule(6, 1),  HourSchedule(7, 2),HourSchedule(8, 3),
+                                       HourSchedule(9, 3),HourSchedule(10, 1), HourSchedule(15, 1)]).full)
+
     def test_parse_targets(self):
         path = os.path.join(os.path.dirname(__file__), 'test/config/rules.txt')
         with open(path, 'r', encoding='utf-8') as f:

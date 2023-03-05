@@ -14,3 +14,8 @@ def iptonum(ip):
     for part in parts:
         result = (result << 8) + int(part)
     return result
+
+def partition(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield tuple(lst[i:i + n])
