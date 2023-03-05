@@ -167,6 +167,9 @@ class Rule:
         self.id = check(id, int, "id")
         self.parent_ctrl = check(parent_ctrl, bool, "parent_ctrl")
 
+    def __str__(self):
+        return f"{self.id}-{self.name}({self.host} -> {self.target}|{self.schedule}) [{self.deny}, {self.enable}, {self.parent_ctrl}]"
+
     def __eq__(self, other):
         if isinstance(other, Rule):
             return self.name == other.name and \

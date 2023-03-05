@@ -64,9 +64,6 @@ setAlready=1
 internalHostRef=xiaomi
 externalHostRef=Youtube
 scheduleRef=
-[0,0,0,0,0,0]1
-enable=1
-defaultAction=0
 [13,0,0,0,0,0]0
 enable=1
 action=0

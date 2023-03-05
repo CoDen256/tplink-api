@@ -145,7 +145,24 @@ class Router(object):
 
     @staticmethod
     def parse_rules(rules_str: str):
-        return Rule()
+        rules_repr = rules_str.split("[")
+        rules = []
+
+        for rule in rules_repr[1:-2]:
+            lines = rule.split("\r\n")
+            id = int(lines[0].split(",")[0])
+            def get_value(num): return lines[num].split("=")[1]
+
+            enable = bool(int(get_value(1)))
+            deny = bool(int(get_value(2)))
+            name = str(get_value(3))
+            parent = bool(int(get_value(4)))
+            # skip 5, 6, 7
+            host = str(get_value(8))
+            target = str(get_value(9))
+            schedule = str(get_value(10))
+            rules.append(Rule(name, host, target, schedule, deny, enable, id, parent))
+        return rules
 
     def add_host(self, name: str, mac: str):
         check(name, str, "name")

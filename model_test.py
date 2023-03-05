@@ -29,8 +29,8 @@ class MyTestCase(unittest.TestCase):
                     Rule("parentCtrl3", "childMac3", "childUrl1", "childSchedule1", False, True, 3, True),
                     Rule("parentCtrl4", "childMac4", "childUrl1", "childSchedule1", False, True, 4, True),
                     Rule("new", "xiaomi", "Youtube", "S3", True, True, 11, False),
-                    Rule("x", "childMac1", "childUrl1", "childSchedule1", False, True, 12, False),
-                    Rule("y", "childMac1", "childUrl1", "childSchedule1", False, True, 13, False),
+                    Rule("x", "xiaomi", "Youtube", "", False, True, 12, False),
+                    Rule("y", "new", "", "", False, True, 13, False),
                 ],
                 rules
             )
