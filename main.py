@@ -1,29 +1,67 @@
-# This is a sample Python script.
-import requests
+import os
 
-host = "192.168.0.1"
+from api import Router
+from model import *
+
+router_ip = "192.168.0.1"
 username = "admin"
 password = "admin"
 
 
-def get_dhcp_settings(host, username, password):
-    path = "cgi?5"
-    url = f"http://{host}/{path}"
+def read(filename):
+    path = os.path.join(os.path.dirname(__file__), filename)
+    with open(path, "r") as f:
+        return "".join(f.readlines())
 
-    headers = {
-        "Content-Type": "text/plain",
-        "Cookie": "Authorization=Basic YWRtaW46YWRtaW4=",
-        "Host": "192.168.0.1",
-        "Origin": "http:/192.168.0.1",
-        "Referer": "http:/192.168.0.1/mainFrame.htm",
-        "Sec-GPC": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    }
-    payload = "[LAN_HOST_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,4\nleaseTimeRemaining\nMACAddress\nhostName\nIPAddress"
-    print(payload)
-    # return requests.post(url, data=payload, headers=headers)
 
-# https://github.com/developerdost/tp-link
-result = get_dhcp_settings(host, username, password)
-print(result.status_code)
-print(result.content)
+def delete_all_rules(router: Router):
+    print("DELETING EVERYTHING FOR RULES")
+    for rule in router.get_rules(False):
+        print(f"Deleting rule {rule}")
+        router.delete_rule(rule.id)
+
+    for host_id, host in router.get_hosts(False):
+        print(f"Deleting host {host} for {host_id}")
+        router.delete_host(host_id)
+
+    for (target_id, target) in router.get_targets(False):
+        print(f"Deleting target {target} for {target_id}")
+        router.delete_target(target_id)
+
+    for (schedule_id, schedule) in router.get_schedules(False):
+        print(f"Deleting schedule {schedule} for {schedule_id}")
+        router.delete_schedule(schedule_id)
+
+
+def load_all_rules(router: Router, config):
+    print("LOADING CONFIG")
+    hosts = Host.parse_hosts(read(f"{config}/hosts.txt"))
+    rules = Rule.parse_rules(read(f"{config}/rules.txt"))
+    schedules = WeekSchedule.parse_weeks(read(f"{config}/schedules.txt"))
+    targets = GroupedTarget.parse_targets(read(f"{config}/targets.txt"))
+
+    for host in hosts:
+        print(f"Adding host {host}")
+        router.add_host(host)
+
+    for name, schedule in schedules:
+        print(f"Adding schedule: {name}: {schedule}")
+        router.add_schedule(name, schedule)
+
+    for target in targets:
+        print(f"Adding target {target}")
+        router.add_target(target)
+
+    for rule in rules:
+        print(f"Adding rule {rule}")
+        router.add_rule(rule)
+
+
+def main():
+    router = Router(router_ip, username, password)
+    router.enable_access_control(True)
+    # delete_all_rules(router)
+    load_all_rules(router, "resources")
+
+if __name__ == '__main__':
+    main()

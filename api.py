@@ -135,12 +135,12 @@ class Router(object):
             print(f"Error: Such schedule for name {name} already exists")
             return False
 
-    def get_schedules(self):
+    def get_schedules(self, include_parent: bool = False):
         payload = "[TASK_SCHEDULE#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nentryName\r\nisParentCtrl\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return Router.parse_schedules(response.text)
+            return [(id, schedule) for id, schedule in Router.parse_schedules(response.text) if "childSchedule" not in schedule or include_parent]
 
     @staticmethod
     def parse_schedules(sch_str: str):
@@ -202,12 +202,12 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
-    def get_rules(self):
+    def get_rules(self, include_parent:bool=False):
         payload = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
         post_url = self.referer + '/cgi?5&1'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return Router.parse_rules(response.text)
+            return [rule for rule in Router.parse_rules(response.text) if not rule.parent_ctrl or include_parent]
 
     @staticmethod
     def parse_rules(rules_str: str):
@@ -245,12 +245,12 @@ class Router(object):
             print(f"Error: Host with mac address: {host.mac} already exists")
             return False
 
-    def get_hosts(self):
+    def get_hosts(self, include_parent:bool=False):
         payload = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return Router.parse_hosts(response.text)
+            return [(id, host) for id, host in Router.parse_hosts(response.text) if "childMac" not in host or include_parent]
 
     @staticmethod
     def parse_hosts(sch_str: str):
@@ -272,12 +272,12 @@ class Router(object):
         if res:
             return id
 
-    def get_targets(self):
+    def get_targets(self, include_parent:bool=False):
         payload = "[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return Router.parse_targets(response.text)
+            return [(id, target) for id, target in Router.parse_targets(response.text) if "childUrl" not in target or include_parent ]
 
     @staticmethod
     def parse_targets(targets_str: str):

@@ -35,6 +35,7 @@ class WeekSchedule:
 
     @classmethod
     def parse_weeks(cls, string: str):
+        if not string: return []
         weeks_names = []
         str = string.split("---")
         for s in str[1:]:
@@ -153,6 +154,8 @@ class Host:
 
     @classmethod
     def parse_hosts(cls, str):
+        if not str: return []
+
         hosts = re.split("\r?\n", str)
         return [Host.parse_host(s) for s in hosts]
 
@@ -194,6 +197,8 @@ class GroupedTarget:
 
     @classmethod
     def parse_targets(cls, str):
+        if not str: return []
+
         targets = re.split("\r?\n", str)
         return [GroupedTarget.parse_target(s) for s in targets]
 
@@ -227,7 +232,7 @@ class Rule:
         self.parent_ctrl = check(parent_ctrl, bool, "parent_ctrl")
 
     def __str__(self):
-        return f"{self.id}-{self.name}({self.host} -> {self.target}|{self.schedule}) [{self.deny}, {self.enable}, {self.parent_ctrl}]"
+        return f"{self.name}({self.id})({self.host} -> {self.target}|{self.schedule}) [{self.deny}, {self.enable}, {self.parent_ctrl}]"
 
     def __repr__(self): return self.__str__()
 
@@ -256,5 +261,6 @@ class Rule:
 
     @classmethod
     def parse_rules(cls, str):
+        if not str: return []
         targets = re.split("\r?\n", str)
         return [Rule.parse_rule(s) for s in targets]
