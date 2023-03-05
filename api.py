@@ -11,7 +11,7 @@ import requests
 from base64 import b64encode
 import re
 
-from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget
+from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget, Rule
 from utils import check
 
 
@@ -136,18 +136,16 @@ class Router(object):
             return False
 
     # allow 0, deny - 1
-    def add_rule(self, name: str, host: str, target: str, schedule: str, deny: bool, enable: bool = False):
-        check(name, str, "name")
-        check(host, str, "host")
-        check(target, str, "schedule")
-        check(schedule, str, "schedule")
-        check(deny, bool, "deny")
-        check(enable, bool, "enable")
-        payload = f"[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName={name}\r\ninternalHostRef={host}\r\nexternalHostRef={target}\r\nscheduleRef={schedule}\r\naction={int(deny)}\r\nenable={int(enable)}\r\ndirection=1\r\nprotocol=0\r\n"
+    def add_rule(self, rule: Rule):
+        payload = f"[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName={rule.name}\r\ninternalHostRef={rule.host}\r\nexternalHostRef={rule.target}\r\nscheduleRef={rule.schedule}\r\naction={int(rule.deny)}\r\nenable={int(rule.enable)}\r\ndirection=1\r\nprotocol=0\r\n"
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
             return True
+
+    @staticmethod
+    def parse_rules(rules_str: str):
+        return Rule()
 
     def add_host(self, name: str, mac: str):
         check(name, str, "name")

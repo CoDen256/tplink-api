@@ -1,6 +1,8 @@
 import re
 from typing import List
 
+from utils import check
+
 
 class WeekSchedule:
     WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
@@ -147,6 +149,34 @@ class Target:
         if isinstance(other, Target):
             return self.name == other.name and \
                 self.url == other.url
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+
+class Rule:
+    def __init__(self, name: str, host: str, target: str, schedule: str, deny: bool, enable: bool, id: int = 0,
+                 parent_ctrl: bool = False):
+        self.name = check(name, str, "name")
+        self.host = check(host, str, "host")
+        self.target = check(target, str, "schedule")
+        self.schedule = check(schedule, str, "schedule")
+        self.deny = check(deny, bool, "deny")
+        self.enable = check(enable, bool, "enable")
+        self.id = check(id, int, "id")
+        self.parent_ctrl = check(parent_ctrl, bool, "parent_ctrl")
+
+    def __eq__(self, other):
+        if isinstance(other, Rule):
+            return self.name == other.name and \
+                self.host == other.host and \
+                self.target == other.target and \
+                self.schedule == other.schedule and \
+                self.deny == other.deny and \
+                self.enable == other.enable and \
+                self.id == other.id and \
+                self.parent_ctrl == other.parent_ctrl
         return False
 
     def __hash__(self):

@@ -1,3 +1,5 @@
+import io
+import os
 import unittest
 
 from api import Router
@@ -12,6 +14,26 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 
 
 class MyTestCase(unittest.TestCase):
+
+    def test_parse_rule(self):
+        path = os.path.join(os.path.dirname(__file__), 'test/get_rules.txt')
+        print(path)
+        with io.open(path, 'r', newline='') as f:
+            content = "".join(f.readlines())
+            print(repr(content))
+            rules = Router.parse_rules(content)
+            self.assertCountEqual(
+                [
+                    Rule("parentCtrl1", "childMac1", "childUrl1", "childSchedule1", False, True, 1, True),
+                    Rule("parentCtrl2", "childMac2", "childUrl1", "childSchedule1", False, True, 2, True),
+                    Rule("parentCtrl3", "childMac3", "childUrl1", "childSchedule1", False, True, 3, True),
+                    Rule("parentCtrl4", "childMac4", "childUrl1", "childSchedule1", False, True, 4, True),
+                    Rule("new", "xiaomi", "Youtube", "S3", True, True, 11, False),
+                    Rule("x", "childMac1", "childUrl1", "childSchedule1", False, True, 12, False),
+                    Rule("y", "childMac1", "childUrl1", "childSchedule1", False, True, 13, False),
+                ],
+                rules
+            )
 
     def test_parse_full(self):
         result = ("sunAm=0\r\n"
