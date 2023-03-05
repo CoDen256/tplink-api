@@ -3,7 +3,8 @@ from typing import List
 
 
 class WeekSchedule:
-    WEEK = ["mon","tue","wed","thu","fri","sat", "sun"]
+    WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
     def __init__(self, days):
         if (len(days) != 7):
             raise AttributeError(f"Days should be 7 in a week, not {len(days)}")
@@ -32,6 +33,7 @@ class WeekSchedule:
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
 
+
 class DaySchedule:
     def __init__(self, hours):
         if (len(hours) > 24):
@@ -56,7 +58,9 @@ class DaySchedule:
 
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
+
     "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3"
+
     @classmethod
     def parse(cls, string: str):
         split = re.split("\D*,\D*", string)
@@ -64,10 +68,14 @@ class DaySchedule:
         for i in range(24):
             res.append(HourSchedule(i, int(split[i])))
         return DaySchedule(res)
+
     def __repr__(self):
         return f"{list(filter(lambda x: x.occupied != 0, self.full))}"
 
-    def __str__(self):return self.__repr__()
+    def __str__(self):
+        return self.__repr__()
+
+
 class HourSchedule:
     EMPTY = 0
     FIRST_HALF = 1
@@ -77,7 +85,8 @@ class HourSchedule:
     def __repr__(self):
         return f"{self.hour_of_day}:00({self.occupied})"
 
-    def __str__(self):return self.__repr__()
+    def __str__(self):
+        return self.__repr__()
 
     def __init__(self, hour_of_day, occupied=3):
         if hour_of_day >= 24 or hour_of_day < 0:
@@ -97,6 +106,47 @@ class HourSchedule:
         if isinstance(other, HourSchedule):
             return self.hour_of_day == other.hour_of_day and \
                 self.occupied == other.occupied
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+
+class GroupedTarget:
+    def __init__(self, name, urls):
+        if not urls: raise AttributeError("GroupedTarget.urls must not be empty")
+        self.urls = urls
+        self.name = name
+
+    def targets(self):
+        return [Target(self.name, url) for url in self.urls]
+
+    def first(self):
+        return Target(self.name, self.urls[0])
+
+    def targets_omit_first(self):
+        return self.targets()[1:]
+
+    def __eq__(self, other):
+        if isinstance(other, GroupedTarget):
+            return self.name == other.name and \
+                self.urls == other.urls
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+
+class Target:
+    def __init__(self, name, url):
+        if not url: raise AttributeError("Target.url must not be empty")
+        self.url = url
+        self.name = name
+
+    def __eq__(self, other):
+        if isinstance(other, Target):
+            return self.name == other.name and \
+                self.url == other.url
         return False
 
     def __hash__(self):

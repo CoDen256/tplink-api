@@ -5,12 +5,13 @@ Created on Mon Sep 16 23:26:06 2019
 
 @author: roy
 """
+from typing import List
 
 import requests
 from base64 import b64encode
 import re
 
-from model import WeekSchedule, DaySchedule, HourSchedule
+from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget
 from utils import check
 
 
@@ -141,7 +142,7 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
-    def add_target(self, name: str, mac: str):
+    def add_host(self, name: str, mac: str):
         check(name, str, "name")
         check(mac, str, "mac")
         if re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
@@ -152,11 +153,46 @@ class Router(object):
         if response.text == '[error]0':
             return True
         if response.text == '[error]1001':
-            print(f"Error: Target with name: {name} already exists")
+            print(f"Error: Host with name: {name} already exists")
             return False
         if response.text == '[error]4710':
-            print(f"Error: Target with mac address: {mac} already exists")
+            print(f"Error: Host with mac address: {mac} already exists")
             return False
+
+    def add_target(self, target: GroupedTarget):
+        # /cgi?3 adds with first entry -> returns id
+        # /cgi?2 updates entry with id and adds new entries
+        id = self._set_target(target.first())
+        if not id: return False
+        return self._add_targets(target.targets_omit_first(), id)
+
+    def _get_target_id(self, response):
+        return int(response[1:].split(",")[0])
+
+    def _set_target(self, target: Target):
+        payload = Router.format_target(target, 0, 0)
+        post_url = self.referer + '/cgi?3'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return self._get_target_id(response.text)
+        if '[error]1001' in response.text:
+            print(f"Error: Target with name: {target.name} already exists")
+            return None
+
+    def _add_targets(self, targets: List[Target], id: int):
+        payload = ""
+        post_url = self.referer + '/cgi?'
+        for i, target in enumerate(targets):
+            post_url += "2&"
+            payload += Router.format_target(target, id, i)
+        post_url = post_url[:-1]
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
+    @staticmethod
+    def format_target(target: Target, id: int, index: int):
+        return f"[EXTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]{index},4\r\nentryName={target.name}\r\ntype=2\r\naddUrl=1\r\ntmpUrl={target.url}\r\n"
 
     @staticmethod
     def format_schedule(schedule: WeekSchedule):
@@ -208,4 +244,5 @@ router = Router("192.168.0.1")
 # print(router.add_rule("new", "xiaomi", "Youtube", "S3", True, True))
 # print(router.add_schedule("S15", sched))
 # print(router.enable_access_control(True))
-router.add_target("new3", "10:6F:D9:A0:1C:D2")
+# router.add_host("new3", "10:6F:D9:A0:1C:D2")
+router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))

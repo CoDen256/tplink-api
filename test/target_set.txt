@@ -1,0 +1,5 @@
+[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,4
+entryName=a
+type=2
+addUrl=1
+tmpUrl=a

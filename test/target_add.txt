@@ -1,0 +1,10 @@
+[EXTERNAL_HOST#4,0,0,0,0,0#0,0,0,0,0,0]0,4
+entryName=reddit2
+type=2
+addUrl=1
+tmpUrl=reddit.com
+[EXTERNAL_HOST#4,0,0,0,0,0#0,0,0,0,0,0]1,4
+entryName=reddit2
+type=2
+addUrl=1
+tmpUrl=m.reddit.com
