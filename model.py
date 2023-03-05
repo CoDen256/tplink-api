@@ -139,6 +139,33 @@ class GroupedTarget:
         return hash(tuple(sorted(self.__dict__.items())))
 
 
+class Host:
+    def __init__(self, name, mac):
+        self.name = check(name, str, "name")
+        self.mac = check(mac, str, "mac")
+        if not re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
+            print(f"Invalid mac address: {mac}")
+
+    def __eq__(self, other):
+        if isinstance(other, Host):
+            return self.name == other.name and \
+                self.mac == other.mac
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    @classmethod
+    def parse_host(cls, str):
+        name, mac = tuple(list(str.split("=")))
+        return Host(name, mac)
+
+    @classmethod
+    def parse_hosts(cls, str):
+        hosts = re.split("\r?\n", str)
+        return [Host.parse_host(s) for s in hosts]
+
+
 class Target:
     def __init__(self, name, url):
         if not url: raise AttributeError("Target.url must not be empty")

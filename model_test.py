@@ -15,6 +15,14 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 
 class MyTestCase(unittest.TestCase):
 
+    def test_parse_hosts(self):
+        path = os.path.join(os.path.dirname(__file__), 'test/hosts.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            content = "".join(f.readlines())
+            hosts = Host.parse_hosts(content)
+            self.assertCountEqual(hosts,
+                    [Host("xiaomi", "5f:38:6a:b8:db:47"), Host("hypnos", "d9:b6:08:9d:87:ee")])
+
     def test_parse_rule(self):
         path = os.path.join(os.path.dirname(__file__), 'test/get_rules.txt')
         print(path)
@@ -37,28 +45,28 @@ class MyTestCase(unittest.TestCase):
 
     def test_parse_full(self):
         result = ("sunAm=0\r\n"
-                    "sunPm=0\r\n"
-                    "monAm=11184810\r\n"
-                    "monPm=11184810\r\n"
-                    "tueAm=5592405\r\n"
-                    "tuePm=5592405\r\n"
-                    "wedAm=11184810\r\n"
-                    "wedPm=11184810\r\n"
-                    "thuAm=15000804\r\n"
-                    "thuPm=15000804\r\n"
-                    "friAm=0\r\n"
-                    "friPm=0\r\n"
-                    "satAm=16776960\r\n"
-                    "satPm=0\r\n")
+                  "sunPm=0\r\n"
+                  "monAm=11184810\r\n"
+                  "monPm=11184810\r\n"
+                  "tueAm=5592405\r\n"
+                  "tuePm=5592405\r\n"
+                  "wedAm=11184810\r\n"
+                  "wedPm=11184810\r\n"
+                  "thuAm=15000804\r\n"
+                  "thuPm=15000804\r\n"
+                  "friAm=0\r\n"
+                  "friPm=0\r\n"
+                  "satAm=16776960\r\n"
+                  "satPm=0\r\n")
 
         sched = WeekSchedule.parse(""
-                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # mon
-                                   "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n" # tue
-                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n" # wed
-                                   "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n" # thu
-                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # fri
-                                   "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n" # sat
-                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")# sun
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"  # mon
+                                   "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n"  # tue
+                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"  # wed
+                                   "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n"  # thu
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"  # fri
+                                   "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"  # sat
+                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")  # sun
 
         self.assertEquals(result, Router.format_schedule(sched))
 

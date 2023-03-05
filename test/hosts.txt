@@ -1,0 +1,2 @@
+xiaomi=5f:38:6a:b8:db:47
+hypnos=d9:b6:08:9d:87:ee

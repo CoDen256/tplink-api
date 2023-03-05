@@ -11,7 +11,7 @@ import requests
 from base64 import b64encode
 import re
 
-from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget, Rule
+from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget, Rule, Host
 from utils import check
 
 
@@ -232,21 +232,17 @@ class Router(object):
             rules.append(Rule(name, host, target, schedule, deny, enable, id, parent))
         return rules
 
-    def add_host(self, name: str, mac: str):
-        check(name, str, "name")
-        check(mac, str, "mac")
-        if re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
-            print(f"Invalid mac adress: {mac}")
-        payload = f"[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\ntype=1\r\nentryName={name}\r\nmac={mac}\r\n"
+    def add_host(self, host: Host):
+        payload = f"[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\ntype=1\r\nentryName={host.name}\r\nmac={host.mac}\r\n"
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
         if response.text == '[error]0':
             return True
         if response.text == '[error]1001':
-            print(f"Error: Host with name: {name} already exists")
+            print(f"Error: Host with name: {host.name} already exists")
             return False
         if response.text == '[error]4710':
-            print(f"Error: Host with mac address: {mac} already exists")
+            print(f"Error: Host with mac address: {host.mac} already exists")
             return False
 
     def get_hosts(self):
@@ -402,4 +398,4 @@ router = Router("192.168.0.1", "admin", "admin")
 # print(router.get_schedules())
 # print(router.get_hosts())
 
-print(router.get_targets())
+# print(router.get_targets())
