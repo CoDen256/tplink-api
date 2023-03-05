@@ -26,8 +26,17 @@ class MyTestCase(unittest.TestCase):
                                       Rule("r1", "xiaomi", "youtube", "", True, True),
                                       Rule("r2", "hypnos", "", "", True, True),
                                       Rule("r3", "hypnos", "youtube", "S2", True, False),
-                                   ])
+                                  ])
 
+    def test_parse_iptargets(self):
+        path = os.path.join(os.path.dirname(__file__), 'test/config/iptargets.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            content = "".join(f.readlines())
+            targets = IpTarget.parse_targets(content)
+            self.assertCountEqual(targets,
+                                  [IpTarget("telegram", "149.154.160.0", "149.154.175.255", 1, 65534),
+                                   IpTarget("youtube", "199.223.232.0", "199.223.239.255", 1, 65534),
+                                   ])
 
     def test_parse_targets(self):
         path = os.path.join(os.path.dirname(__file__), 'test/config/targets.txt')
@@ -129,18 +138,18 @@ class MyTestCase(unittest.TestCase):
                                        DaySchedule(inc([HourSchedule(0, 3)] * 8, start=4)),
                                        DaySchedule([])
                                        ]
-                                  )),("S2",
-                                   WeekSchedule(
-                                       [
-                                           DaySchedule([]),
-                                           DaySchedule([]),
-                                           DaySchedule([]),
-                                           DaySchedule([]),
-                                           DaySchedule([]),
-                                           DaySchedule([]),
-                                           DaySchedule([])
-                                       ]
-                                   ))])
+                                  )), ("S2",
+                                       WeekSchedule(
+                                           [
+                                               DaySchedule([]),
+                                               DaySchedule([]),
+                                               DaySchedule([]),
+                                               DaySchedule([]),
+                                               DaySchedule([]),
+                                               DaySchedule([]),
+                                               DaySchedule([])
+                                           ]
+                                       ))])
 
     def test_week(self):
         sched = WeekSchedule.parse_weeks(""

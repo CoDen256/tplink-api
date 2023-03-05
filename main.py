@@ -39,6 +39,7 @@ def load_all_rules(router: Router, config):
     rules = Rule.parse_rules(read(f"{config}/rules.txt"))
     schedules = WeekSchedule.parse_weeks(read(f"{config}/schedules.txt"))
     targets = GroupedTarget.parse_targets(read(f"{config}/targets.txt"))
+    iptargets = IpTarget.parse_targets(read(f"{config}/iptargets.txt"))
 
     for host in hosts:
         print(f"Adding host {host}")

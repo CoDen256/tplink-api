@@ -194,7 +194,7 @@ class IpTarget:
     def parse_target(cls, str):
         name, rest = tuple(list(str.split("=")))
         start, end, port_start, port_end = tuple(list(rest.split(",")))
-        return IpTarget(name, str(start), str(end), int(port_start), int(port_end))
+        return IpTarget(name, start, end, int(port_start), int(port_end))
 
     @classmethod
     def parse_targets(cls, str):
