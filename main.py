@@ -72,7 +72,7 @@ def schedule_for_today():
     today_schedule = schedule.days[weekday]
     hour = now.hour
     minutes = now.minute
-    half_hours = hour*2 + minutes//30 + 1
+    half_hours = hour*2 + minutes//30
     print(f"Starting from hour {hour}:{minutes} => {half_hours} half hours")
     today_shifted = today_schedule.shift_half_hours(half_hours, fill_rest_occupied=12)
     today_shifted = today_shifted.replace(HourSchedule(21, 3)) \
