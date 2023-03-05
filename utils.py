@@ -7,3 +7,10 @@ def check(param, param_type, name):
 def multiply(x, y):
     return [a * b for a, b in zip(x, y)]
 
+
+def iptonum(ip):
+    parts = ip.split(".")
+    result = 0
+    for part in parts:
+        result = (result << 8) + int(part)
+    return result

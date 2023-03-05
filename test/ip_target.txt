@@ -1,0 +1,7 @@
+[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,6
+entryName=telegram
+type=0
+IPStart=-1785028608
+IPEnd=-1785024513
+portStart=1
+portEnd=65534

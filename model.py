@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from utils import check
+from utils import check, iptonum
 
 
 class WeekSchedule:
@@ -160,6 +160,56 @@ class Host:
         return [Host.parse_host(s) for s in hosts]
 
 
+class IpTarget:
+    def __init__(self, name, ipStart, ipEnd, portStart, portEnd):
+        self.name = check(name, str, "name")
+        self.ipStart = check(ipStart, str, "ipStart")
+        self.ipEnd = check(ipEnd, str, "ipEnd")
+        self.portStart = check(portStart, int, "portStart")
+        self.portEnd = check(portEnd, int, "portEnd")
+        if (portStart <= 0 or portStart > 65534 or portEnd <= 0 or portEnd > 65534):
+            raise AttributeError(f"port should be between 1 and 65534, but was :{portStart}-{portEnd}")
+        if (portStart > portEnd):
+            raise AttributeError(f"Port start should be less than port end, but was: {portStart} - {portEnd}")
+
+    def __str__(self):
+        return f"{self.name}[{self.ipStart - self.ipEnd}][{self.portStart}-{self.portEnd}]"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        if isinstance(other, IpTarget):
+            return self.name == other.name and \
+                self.ipStart == other.ipStart and \
+                self.ipEnd == other.ipEnd and \
+                self.portEnd == other.portEnd and \
+                self.portStart == other.portStart
+        return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    @classmethod
+    def parse_target(cls, str):
+        name, rest = tuple(list(str.split("=")))
+        start, end, port_start, port_end = tuple(list(rest.split(",")))
+        return IpTarget(name, str(start), str(end), int(port_start), int(port_end))
+
+    @classmethod
+    def parse_targets(cls, str):
+        if not str: return []
+
+        targets = re.split("\r?\n", str)
+        return [IpTarget.parse_target(s) for s in targets]
+
+    def intStart(self):
+        return iptonum(self.ipStart)
+
+    def intEnd(self):
+        return iptonum(self.ipEnd)
+
+
 class GroupedTarget:
     def __init__(self, name, urls):
         if not urls: raise AttributeError("GroupedTarget.urls must not be empty")
@@ -234,7 +284,8 @@ class Rule:
     def __str__(self):
         return f"{self.name}({self.id})({self.host} -> {self.target}|{self.schedule}) [{self.deny}, {self.enable}, {self.parent_ctrl}]"
 
-    def __repr__(self): return self.__str__()
+    def __repr__(self):
+        return self.__str__()
 
     def __eq__(self, other):
         if isinstance(other, Rule):

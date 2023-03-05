@@ -11,7 +11,7 @@ import requests
 from base64 import b64encode
 import re
 
-from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget, Rule, Host
+from model import WeekSchedule, DaySchedule, HourSchedule, Target, GroupedTarget, Rule, Host, IpTarget
 from utils import check
 
 
@@ -140,7 +140,8 @@ class Router(object):
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return [(id, schedule) for id, schedule in Router.parse_schedules(response.text) if "childSchedule" not in schedule or include_parent]
+            return [(id, schedule) for id, schedule in Router.parse_schedules(response.text) if
+                    "childSchedule" not in schedule or include_parent]
 
     @staticmethod
     def parse_schedules(sch_str: str):
@@ -202,7 +203,7 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
-    def get_rules(self, include_parent:bool=False):
+    def get_rules(self, include_parent: bool = False):
         payload = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
         post_url = self.referer + '/cgi?5&1'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -245,12 +246,13 @@ class Router(object):
             print(f"Error: Host with mac address: {host.mac} already exists")
             return False
 
-    def get_hosts(self, include_parent:bool=False):
+    def get_hosts(self, include_parent: bool = False):
         payload = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return [(id, host) for id, host in Router.parse_hosts(response.text) if "childMac" not in host or include_parent]
+            return [(id, host) for id, host in Router.parse_hosts(response.text) if
+                    "childMac" not in host or include_parent]
 
     @staticmethod
     def parse_hosts(sch_str: str):
@@ -263,6 +265,13 @@ class Router(object):
             host_id_name.append((id, name))
         return host_id_name
 
+    def add_ip_target(self, target: IpTarget):
+        payload = f"[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,6\r\nentryName={target.name}\r\ntype=0\r\nIPStart={target.intStart()}\r\nIPEnd={target.intEnd()}\r\nportStart={target.portStart}\r\nportEnd={target.portEnd}\r\n"
+        post_url = self.referer + '/cgi?3'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return True
+
     def add_target(self, target: GroupedTarget):
         # /cgi?3 adds with first entry -> returns id
         # /cgi?2 updates entry with id and adds new entries
@@ -272,12 +281,13 @@ class Router(object):
         if res:
             return id
 
-    def get_targets(self, include_parent:bool=False):
+    def get_targets(self, include_parent: bool = False):
         payload = "[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
         if '[error]0' in response.text:
-            return [(id, target) for id, target in Router.parse_targets(response.text) if "childUrl" not in target or include_parent ]
+            return [(id, target) for id, target in Router.parse_targets(response.text) if
+                    "childUrl" not in target or include_parent]
 
     @staticmethod
     def parse_targets(targets_str: str):
@@ -392,10 +402,11 @@ router = Router("192.168.0.1", "admin", "admin")
 # router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))
 # router.change_pass("admin", "admin")
 # print(router.get_rules())
-# print(router.change_wifi_pass("8wsx#fre"))
+# print(router.change_wifi_pass("*********"))
 # router.enable_rule(11, True)
 # router.delete_rule(11)
 # print(router.get_schedules())
 # print(router.get_hosts())
 
 # print(router.get_targets())
+# print(router.add_ip_target(IpTarget("tel","149.154.160.1", "149.154.175.1",1, 65534)))
