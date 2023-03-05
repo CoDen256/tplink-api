@@ -249,6 +249,24 @@ class Router(object):
             print(f"Error: Host with mac address: {mac} already exists")
             return False
 
+    def get_hosts(self):
+        payload = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?5'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return Router.parse_hosts(response.text)
+
+    @staticmethod
+    def parse_hosts(sch_str: str):
+        host_id_name = []
+        schedules = sch_str.split("[")
+        for sch in schedules[1:-1]:
+            lines = re.split("\r?\n", sch)
+            id = int(lines[0].split(",")[0])
+            name = lines[3].split('=')[1]
+            host_id_name.append((id, name))
+        return host_id_name
+
     def add_target(self, target: GroupedTarget):
         # /cgi?3 adds with first entry -> returns id
         # /cgi?2 updates entry with id and adds new entries
@@ -257,6 +275,24 @@ class Router(object):
         res = self._add_targets(target.targets_omit_first(), id)
         if res:
             return id
+
+    def get_targets(self):
+        payload = "[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?5'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if '[error]0' in response.text:
+            return Router.parse_targets(response.text)
+
+    @staticmethod
+    def parse_targets(targets_str: str):
+        target_id_name = []
+        schedules = targets_str.split("[")
+        for sch in schedules[1:-1]:
+            lines = re.split("\r?\n", sch)
+            id = int(lines[0].split(",")[0])
+            name = lines[3].split('=')[1]
+            target_id_name.append((id, name))
+        return target_id_name
 
     def _get_target_id(self, response):
         return int(response[1:].split(",")[0])
@@ -363,4 +399,7 @@ router = Router("192.168.0.1", "admin", "admin")
 # print(router.change_wifi_pass("8wsx#fre"))
 # router.enable_rule(11, True)
 # router.delete_rule(11)
-print(router.get_schedules())
+# print(router.get_schedules())
+# print(router.get_hosts())
+
+print(router.get_targets())
