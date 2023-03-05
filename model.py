@@ -13,6 +13,12 @@ class WeekSchedule:
 
         self.days = days
 
+    def __repr__(self):
+        return f"{self.days}"
+
+    def __str__(self):
+        return self.__repr__()
+
     def days_with_names(self):
         return [(x, WeekSchedule.WEEK[i]) for (i, x) in enumerate(self.days)]
 
@@ -26,6 +32,16 @@ class WeekSchedule:
         for day in days_str:
             days.append(DaySchedule.parse(day))
         return WeekSchedule(days)
+
+    @classmethod
+    def parse_weeks(cls, string: str):
+        weeks_names = []
+        str = string.split("---")
+        for s in str[1:]:
+            split = s.split("\n", maxsplit=1)
+            name = split[0]
+            weeks_names.append((name, WeekSchedule.parse(split[1])))
+        return weeks_names
 
     def __eq__(self, other):
         if isinstance(other, WeekSchedule):

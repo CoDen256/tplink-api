@@ -16,21 +16,21 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 class MyTestCase(unittest.TestCase):
 
     def test_parse_targets(self):
-        path = os.path.join(os.path.dirname(__file__), 'test/targets.txt')
+        path = os.path.join(os.path.dirname(__file__), 'test/config/targets.txt')
         with open(path, 'r', encoding='utf-8') as f:
             content = "".join(f.readlines())
             targets = GroupedTarget.parse_targets(content)
             self.assertCountEqual(targets,
-                    [GroupedTarget("youtube", ["youtube.com","youtube.m","youtube.s"]),
-                     GroupedTarget("telegram", ["web.telegram.com","telegram"])])
+                                  [GroupedTarget("youtube", ["youtube.com", "youtube.m", "youtube.s"]),
+                                   GroupedTarget("telegram", ["web.telegram.com", "telegram"])])
 
     def test_parse_hosts(self):
-        path = os.path.join(os.path.dirname(__file__), 'test/hosts.txt')
+        path = os.path.join(os.path.dirname(__file__), 'test/config/hosts.txt')
         with open(path, 'r', encoding='utf-8') as f:
             content = "".join(f.readlines())
             hosts = Host.parse_hosts(content)
             self.assertCountEqual(hosts,
-                    [Host("xiaomi", "5f:38:6a:b8:db:47"), Host("hypnos", "d9:b6:08:9d:87:ee")])
+                                  [Host("xiaomi", "5f:38:6a:b8:db:47"), Host("hypnos", "d9:b6:08:9d:87:ee")])
 
     def test_parse_rule(self):
         path = os.path.join(os.path.dirname(__file__), 'test/get_rules.txt')
@@ -95,15 +95,48 @@ class MyTestCase(unittest.TestCase):
             (16776960, 0),
             Router.compute_day_value(DaySchedule.parse("0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0")))
 
+    def test_parse_weeks(self):
+        self.maxDiff = None
+        path = os.path.join(os.path.dirname(__file__), 'test/config/schedules.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            content = "".join(f.readlines())
+            weeks = WeekSchedule.parse_weeks(content)
+            self.assertCountEqual(weeks,
+                                  [("S1", WeekSchedule(
+                                      [DaySchedule(inc([HourSchedule(0, 2)] * 24)),
+                                       DaySchedule(inc([HourSchedule(0, 1)] * 24)),
+                                       DaySchedule(inc([HourSchedule(0, 2)] * 24)),
+                                       DaySchedule(
+                                           inc([HourSchedule(0, 0)] * 6, 4, 0) +
+                                           inc([HourSchedule(0, 1)] * 6, 4, 1) +
+                                           inc([HourSchedule(0, 2)] * 6, 4, 2) +
+                                           inc([HourSchedule(0, 3)] * 6, 4, 3)),
+                                       DaySchedule([]),
+                                       DaySchedule(inc([HourSchedule(0, 3)] * 8, start=4)),
+                                       DaySchedule([])
+                                       ]
+                                  )),("S2",
+                                   WeekSchedule(
+                                       [
+                                           DaySchedule([]),
+                                           DaySchedule([]),
+                                           DaySchedule([]),
+                                           DaySchedule([]),
+                                           DaySchedule([]),
+                                           DaySchedule([]),
+                                           DaySchedule([])
+                                       ]
+                                   ))])
+
     def test_week(self):
-        sched = WeekSchedule.parse(""
-                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
-                                   "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n"
-                                   "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
-                                   "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n"
-                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
-                                   "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
-                                   "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")
+        sched = WeekSchedule.parse_weeks(""
+                                         "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
+                                         "1,1,1,1, 1,1,1,1, 1,1,1,1,     1,1,1,1, 1,1,1,1, 1,1,1,1\n"
+                                         "2,2,2,2, 2,2,2,2, 2,2,2,2,     2,2,2,2, 2,2,2,2, 2,2,2,2\n"
+                                         "0,1,2,3, 0,1,2,3, 0,1,2,3,     0,1,2,3, 0,1,2,3, 0,1,2,3\n"
+                                         "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
+                                         "0,0,0,0, 3,3,3,3, 3,3,3,3,     0,0,0,0, 0,0,0,0, 0,0,0,0\n"
+                                         "0,0,0,0, 0,0,0,0, 0,0,0,0,     0,0,0,0, 0,0,0,0, 0,0,0,0\n")
         self.assertEquals(sched, WeekSchedule(
             [DaySchedule(inc([HourSchedule(0, 2)] * 24)),
              DaySchedule(inc([HourSchedule(0, 1)] * 24)),
