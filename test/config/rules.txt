@@ -1,0 +1,4 @@
+r0=xiaomi,youtube,S1,1,1
+r1=xiaomi,youtube,,1,1
+r2=hypnos,,,0,1
+r3=hypnos,youtube,S2,1,0

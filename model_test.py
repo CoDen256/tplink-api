@@ -16,6 +16,20 @@ def inc(schedule: List[HourSchedule], factor=1, start=0):
 class MyTestCase(unittest.TestCase):
 
     def test_parse_targets(self):
+        path = os.path.join(os.path.dirname(__file__), 'test/config/rules.txt')
+        with open(path, 'r', encoding='utf-8') as f:
+            content = "".join(f.readlines())
+            rules = Rule.parse_rules(content)
+            self.assertCountEqual(rules,
+                                  [
+                                      Rule("r0", "xiaomi", "youtube", "S1", True, True),
+                                      Rule("r1", "xiaomi", "youtube", "", True, True),
+                                      Rule("r2", "hypnos", "", "", True, True),
+                                      Rule("r3", "hypnos", "youtube", "S2", True, False),
+                                   ])
+
+
+    def test_parse_targets(self):
         path = os.path.join(os.path.dirname(__file__), 'test/config/targets.txt')
         with open(path, 'r', encoding='utf-8') as f:
             content = "".join(f.readlines())

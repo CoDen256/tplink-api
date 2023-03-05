@@ -245,3 +245,16 @@ class Rule:
 
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
+
+    @classmethod
+    def parse_rule(cls, str):
+        name, params = tuple(list(str.split("=")))
+        (host, target, schedule, deny, enable) = tuple(list(params.split(",")))
+        deny = bool(int(deny))
+        enable = bool(int(enable))
+        return Rule(name, host, target, schedule, deny, enable)
+
+    @classmethod
+    def parse_rules(cls, str):
+        targets = re.split("\r?\n", str)
+        return [Rule.parse_rule(s) for s in targets]
