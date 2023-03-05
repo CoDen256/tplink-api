@@ -1,0 +1,6 @@
+[LAN_WLAN#1,1,0,0,0,0#0,0,0,0,0,0]0,5
+BeaconType=11i
+IEEE11iAuthenticationMode=PSKAuthentication
+IEEE11iEncryptionModes=AESEncryption
+X_TP_PreSharedKey=111111
+X_TP_GroupKeyUpdateInterval=0

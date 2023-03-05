@@ -143,6 +143,23 @@ class Router(object):
         if response.text == '[error]0':
             return True
 
+    def enable_rule(self, id: int, enable: bool = False):
+        check(id, int, "id")
+        check(enable, bool, "enable")
+        payload = f"[RULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,1\r\nenable={int(enable)}\r\n"
+        post_url = self.referer + '/cgi?2'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
+    def delete_rule(self, id: int):
+        check(id, int, "id")
+        payload = f"[RULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+        post_url = self.referer + '/cgi?4'
+        response = self.post_data(self.main_referer, post_url, payload)
+        if response.text == '[error]0':
+            return True
+
     def get_rules(self):
         payload = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
         post_url = self.referer + '/cgi?5&1'
@@ -159,6 +176,7 @@ class Router(object):
             lines = re.split("\r?\n", rule)
             id = int(lines[0].split(",")[0])
             print(lines)
+
             def get_value(num):
                 print(f"VALUE: {lines[num]}")
                 return lines[num].split("=")[1]
@@ -234,6 +252,16 @@ class Router(object):
             self.update_login_credentials(new_username, new_password)
             return True
 
+    def change_wifi_pass(self, new_password):
+        payload = f"[LAN_WLAN#1,1,0,0,0,0#0,0,0,0,0,0]0,5\r\nBeaconType=11i\r\nIEEE11iAuthenticationMode=PSKAuthentication\r\nIEEE11iEncryptionModes=AESEncryption\r\nX_TP_PreSharedKey={new_password}\r\nX_TP_GroupKeyUpdateInterval=0\r\n"
+        post_url = self.referer + '/cgi?2'
+        try:
+            response = self.post_data(self.main_referer, post_url, payload)
+            if '[error]0' in response.text: return True
+        except Exception as e:
+            print(f"It's okay, connection refused because no internet: {e}")
+            # won't get the response back, because no connection to the router
+
     @staticmethod
     def format_target(target: Target, id: int, index: int):
         return f"[EXTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]{index},4\r\nentryName={target.name}\r\ntype=2\r\naddUrl=1\r\ntmpUrl={target.url}\r\n"
@@ -291,4 +319,7 @@ router = Router("192.168.0.1", "admin", "admin")
 # router.add_host("new3", "10:6F:D9:A0:1C:D2")
 # router.add_target(GroupedTarget("cgg", ["a", "b", "c", "d", "e", "f", "g", "i"]))
 # router.change_pass("admin", "admin")
-print(router.get_rules())
+# print(router.get_rules())
+# print(router.change_wifi_pass("8wsx#fre"))
+# router.enable_rule(11, True)
+# router.delete_rule(11)
