@@ -25,6 +25,16 @@ class WeekSchedule:
     def days_starting_sunday(self):
         return self.days_with_names()[-1:] + self.days_with_names()[:-1]
 
+    def replace(self, index, day_schedule):
+        days = self.days[:]
+        days[index] = day_schedule
+        return WeekSchedule(days)
+
+    def shift_half_hours(self, count, fill_occupied=0):
+        return WeekSchedule([
+            day.shift_half_hours(count, fill_occupied) for day in self.days
+        ])
+
     @classmethod
     def parse(cls, string: str):
         days = []
@@ -59,13 +69,12 @@ class DaySchedule:
             raise AttributeError("Hours should be not more than 24")
         self.full: List[HourSchedule] = list(sorted(self.compute_full_day(hours)))
 
-
-
-    def shift_half_hours(self, count):
+    def shift_half_hours(self, count, fill_rest_occupied=0):
+        if (fill_rest_occupied > count): raise AttributeError("Fill rest count should be less than count")
         result = []
         half_hours = [(bool(h.occupied & h.FIRST_HALF), bool(h.occupied & h.SECOND_HALF)) for h in self.full]
         flat_hours = [hour for pair in half_hours for hour in pair]
-        shifted = ([False] * count + flat_hours)[:48]
+        shifted = ([True] * fill_rest_occupied + [False] * (count - fill_rest_occupied) + flat_hours)[:48]
         for i, pair in enumerate(partition(shifted, 2)):
             (first, second) = pair
             result.append(HourSchedule(i, first + (second << 1)))
@@ -81,7 +90,12 @@ class DaySchedule:
             if hour not in hours_known:
                 full.append(HourSchedule(hour, HourSchedule.EMPTY))
         return full
-
+    def replace(self, hour_schedule):
+        hours = self.full[:]
+        for i, hour in enumerate(hours):
+            if hour.hour_of_day == hour_schedule.hour_of_day:
+                hours[i] = hour_schedule
+        return DaySchedule(hours)
     def __eq__(self, other):
         if isinstance(other, DaySchedule):
             return self.full == other.full

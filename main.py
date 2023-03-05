@@ -62,8 +62,9 @@ def load_all_rules(router: Router, config):
         print(f"Adding rule {rule}")
         router.add_rule(rule)
 
-def enable_schedule_for_today():
-    schedule = WeekSchedule.parse_weeks(read(f"resources/schedules.txt"))[0]
+def schedule_for_today():
+    name, schedule = WeekSchedule.parse_weeks(read(f"resources/schedules.txt"))[0]
+    shifted_normal = schedule.shift_half_hours(15, 12)
     now = datetime.now()
     weekday = now.weekday()
     print(f"Today is {weekday} day of week: {WeekSchedule.WEEK[weekday]}")
@@ -71,9 +72,35 @@ def enable_schedule_for_today():
     today_schedule = schedule.days[weekday]
     hour = now.hour
     minutes = now.minute
-    print(f"Starting from hour {hour}:{minutes}")
-    today_schedule
+    half_hours = hour*2 + minutes//30 + 1
+    print(f"Starting from hour {hour}:{minutes} => {half_hours} half hours")
+    today_shifted = today_schedule.shift_half_hours(half_hours, fill_rest_occupied=12)
+    today_shifted = today_shifted.replace(HourSchedule(21, 3)) \
+                                 .replace(HourSchedule(22, 3)) \
+                                 .replace(HourSchedule(23, 3))
+    new_schedule = shifted_normal.replace(weekday,today_shifted)
 
+    for day in new_schedule.days:
+        print(day)
+    return new_schedule
+
+def replace_schedule_for_today(router, schedule):
+    name = "dynamic-daily"
+
+    rules = router.get_rules()
+    for rule in rules:
+        if rule.name == name:
+            router.delete_rule(rule.id)
+
+    schedules = router.get_schedules()
+    for id, schedule_name in schedules:
+        if schedule_name == name:
+            router.delete_schedule(id)
+
+    rule = Rule(name, "hypnos", "youtube", name, True, True)
+
+    router.add_schedule(name, schedule)
+    router.add_rule(rule)
 
 def main():
     router = Router(router_ip, username, password)
@@ -81,8 +108,9 @@ def main():
     # delete_all_rules(router)
     # load_all_rules(router, "resources")
 
-    enable_schedule_for_today()
+    schedule = schedule_for_today()
+    replace_schedule_for_today(router, schedule)
 
     router.reboot()
 if __name__ == '__main__':
-    enable_schedule_for_today()
+    main()

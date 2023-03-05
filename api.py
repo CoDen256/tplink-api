@@ -55,6 +55,7 @@ class Router(object):
         return 'Authorization=' + authentication
 
     def login(self):
+        print("Invoking login")
         response = self.session.get(self.referer, timeout=self.timeout)
         is_login_success = re.search('(?i)username or password is incorrect', response.text)
         if is_login_success == None:
@@ -71,6 +72,7 @@ class Router(object):
         return response
 
     def get_wan_details(self):
+        print("Invoking get_wan_details")
         referer = self.main_referer
         post_url = self.referer + '/cgi?1&1'
         payload = '[WAN_ETH_INTF#1,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable\r\nX_TP_lastUsedIntf\r\n[WAN_IP_CONN#1,1,1,0,0,0#0,0,0,0,0,0]1,0\r\n'
@@ -89,6 +91,7 @@ class Router(object):
         return wan_details
 
     def configure_wan(self, ipAddress, subnetMask, defaultGateway, dnsServers, dnsServers2):
+        print("Invoking configure_wan")
         referer = self.main_referer
         post_url = self.referer + '/cgi?2&2'
         payload = '[WAN_ETH_INTF#1,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nX_TP_lastUsedIntf=ipoe_eth3_s\r\nX_TP_lastUsedName=ewan_ipoe_s\r\n[WAN_IP_CONN#1,1,1,0,0,0#0,0,0,0,0,0]1,18\r\nexternalIPAddress={}\r\nsubnetMask={}\r\ndefaultGateway={}\r\nNATEnabled=1\r\nX_TP_FullconeNATEnabled=0\r\nX_TP_FirewallEnabled=1\r\nmaxMTUSize=1500\r\nDNSOverrideAllowed=1\r\nDNSServers={},{}\r\nX_TP_IPv4Enabled=1\r\nX_TP_IPv6Enabled=0\r\nX_TP_IPv6AddressingType=Static\r\nX_TP_ExternalIPv6Address=::\r\nX_TP_PrefixLength=64\r\nX_TP_DefaultIPv6Gateway=::\r\nX_TP_IPv6DNSOverrideAllowed=0\r\nX_TP_IPv6DNSServers=::,::\r\nenable=1\r\n'.format(
@@ -99,6 +102,7 @@ class Router(object):
             return True
 
     def reboot(self):
+        print("Invoking reboot")
         referer = self.main_referer
         post_url = self.referer + '/cgi?7'
         payload = '[ACT_REBOOT#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n'
@@ -107,6 +111,7 @@ class Router(object):
             return True
 
     def enable_access_control(self, enable: bool = False):
+        print("Invoking enable_access_control")
         check(enable, bool, "enable")
         payload = f"[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable={int(enable)}\r\ndefaultAction=0\r\n"
         post_url = self.referer + '/cgi?2'
@@ -117,6 +122,7 @@ class Router(object):
     # requires already existing shcedule at least one
     # if schedule configuration(not name) already exists, then error
     def add_schedule(self, name: str, schedule: WeekSchedule):
+        print("Invoking add_schedule")
         check(name, str, "name")
         check(schedule, WeekSchedule, "schedule")
         formatted_schedule = Router.format_schedule(schedule)
@@ -136,6 +142,7 @@ class Router(object):
             return False
 
     def get_schedules(self, include_parent: bool = False):
+        print("Invoking get_schedules")
         payload = "[TASK_SCHEDULE#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nentryName\r\nisParentCtrl\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -155,6 +162,7 @@ class Router(object):
         return sch_id_name
 
     def delete_schedule(self, id):
+        print("Invoking delete_schedule")
         check(id, int, "id")
         payload = f"[TASK_SCHEDULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?4'
@@ -163,6 +171,7 @@ class Router(object):
             return True
 
     def delete_target(self, id):
+        print("Invoking delete_target")
         check(id, int, "id")
         payload = f"[EXTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?4'
@@ -171,6 +180,7 @@ class Router(object):
             return True
 
     def delete_host(self, id):
+        print("Invoking delete_host")
         check(id, int, "id")
         payload = f"[INTERNAL_HOST#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?4'
@@ -180,6 +190,7 @@ class Router(object):
 
     # allow 0, deny - 1
     def add_rule(self, rule: Rule):
+        print("Invoking add_rule")
         payload = f"[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName={rule.name}\r\ninternalHostRef={rule.host}\r\nexternalHostRef={rule.target}\r\nscheduleRef={rule.schedule}\r\naction={int(rule.deny)}\r\nenable={int(rule.enable)}\r\ndirection=1\r\nprotocol=0\r\n"
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -187,6 +198,7 @@ class Router(object):
             return True
 
     def enable_rule(self, id: int, enable: bool = False):
+        print("Invoking enable_rule")
         check(id, int, "id")
         check(enable, bool, "enable")
         payload = f"[RULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,1\r\nenable={int(enable)}\r\n"
@@ -196,6 +208,7 @@ class Router(object):
             return True
 
     def delete_rule(self, id: int):
+        print("Invoking delete_rule")
         check(id, int, "id")
         payload = f"[RULE#{id},0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?4'
@@ -204,6 +217,7 @@ class Router(object):
             return True
 
     def get_rules(self, include_parent: bool = False):
+        print("Invoking get_rules")
         payload = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
         post_url = self.referer + '/cgi?5&1'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -234,6 +248,7 @@ class Router(object):
         return rules
 
     def add_host(self, host: Host):
+        print("Invoking add_host")
         payload = f"[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\ntype=1\r\nentryName={host.name}\r\nmac={host.mac}\r\n"
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -247,6 +262,7 @@ class Router(object):
             return False
 
     def get_hosts(self, include_parent: bool = False):
+        print("Invoking get_hosts")
         payload = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -266,6 +282,7 @@ class Router(object):
         return host_id_name
 
     def add_ip_target(self, target: IpTarget):
+        print("Invoking add_ip_target")
         payload = f"[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,6\r\nentryName={target.name}\r\ntype=0\r\nIPStart={target.intStart()}\r\nIPEnd={target.intEnd()}\r\nportStart={target.portStart}\r\nportEnd={target.portEnd}\r\n"
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -273,6 +290,7 @@ class Router(object):
             return True
 
     def add_target(self, target: GroupedTarget):
+        print("Invoking add_target")
         # /cgi?3 adds with first entry -> returns id
         # /cgi?2 updates entry with id and adds new entries
         id = self._set_target(target.first())
@@ -282,6 +300,7 @@ class Router(object):
             return id
 
     def get_targets(self, include_parent: bool = False):
+        print("Invoking get_targets")
         payload = "[EXTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
         post_url = self.referer + '/cgi?5'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -301,9 +320,11 @@ class Router(object):
         return target_id_name
 
     def _get_target_id(self, response):
+        print("Invoking _get_target_id")
         return int(response[1:].split(",")[0])
 
     def _set_target(self, target: Target):
+        print("Invoking _set_target")
         payload = Router.format_target(target, 0, 0)
         post_url = self.referer + '/cgi?3'
         response = self.post_data(self.main_referer, post_url, payload)
@@ -314,6 +335,7 @@ class Router(object):
             return None
 
     def _add_targets(self, targets: List[Target], id: int):
+        print("Invoking _add_targets")
         payload = ""
         post_url = self.referer + '/cgi?'
         for i, target in enumerate(targets):
@@ -325,6 +347,7 @@ class Router(object):
             return True
 
     def change_pass(self, new_username, new_password):
+        print("Invoking change_pass")
         check(new_username, str, "new_username")
         check(new_password, str, "new_password")
         payload = f"[/cgi/auth#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\noldPwd={self.password}\r\nname={new_username}\r\npwd={new_password}\r\n"
@@ -335,6 +358,7 @@ class Router(object):
             return True
 
     def change_wifi_pass(self, new_password):
+        print("Invoking change_wifi_pass")
         payload = f"[LAN_WLAN#1,1,0,0,0,0#0,0,0,0,0,0]0,5\r\nBeaconType=11i\r\nIEEE11iAuthenticationMode=PSKAuthentication\r\nIEEE11iEncryptionModes=AESEncryption\r\nX_TP_PreSharedKey={new_password}\r\nX_TP_GroupKeyUpdateInterval=0\r\n"
         post_url = self.referer + '/cgi?2'
         try:
